@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Despensa">
+<meta name="theme-color" content="#C85A1E">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Despensa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#FFFBF5;--surface:#FFF8EE;--card:#FFFFFF;--border:#E8DDD0;
+  --text:#1A1208;--muted:#7A6A58;--accent:#C85A1E;--accent-light:#FAECE7;
+  --green:#3B6D11;--green-light:#EAF3DE;--amber:#BA7517;--amber-light:#FAEEDA;
+  --blue:#185FA5;--blue-light:#E6F1FB;--red:#A32D2D;--red-light:#FCEBEB;
+  --font:'DM Sans',sans-serif;--serif:'DM Serif Display',serif;
+  --r:12px;--r-sm:8px;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+h1,h2,h3{font-family:var(--serif);font-weight:400}
+.app{max-width:430px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+
+/* AUTH */
+.auth-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;background:var(--bg)}
+.auth-logo{font-family:var(--serif);font-size:36px;color:var(--accent);margin-bottom:6px;text-align:center}
+.auth-sub{font-size:14px;color:var(--muted);text-align:center;margin-bottom:32px}
+.auth-card{background:var(--card);border:0.5px solid var(--border);border-radius:16px;padding:24px;width:100%;max-width:360px}
+.auth-card h2{font-family:var(--serif);font-size:22px;margin-bottom:20px;color:var(--text)}
+.auth-err{background:var(--red-light);color:var(--red);border:0.5px solid #F09595;border-radius:var(--r-sm);padding:10px 12px;font-size:13px;margin-bottom:12px;display:none}
+.auth-switch{text-align:center;margin-top:16px;font-size:13px;color:var(--muted)}
+.auth-switch a{color:var(--accent);font-weight:600;cursor:pointer}
+.auth-info{background:var(--amber-light);border:0.5px solid #EF9F27;border-radius:var(--r-sm);padding:10px 12px;font-size:12px;color:#633806;margin-bottom:16px;line-height:1.5}
+
+/* HEADER */
+.header{background:var(--accent);padding:16px 16px 12px;position:sticky;top:0;z-index:100}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.header h1{font-family:var(--serif);font-size:22px;color:#FFF;letter-spacing:-0.3px}
+.header-subtitle{font-size:12px;color:rgba(255,255,255,0.7);margin-top:1px}
+.header-right{display:flex;align-items:center;gap:8px}
+.badge-alert{background:rgba(255,255,255,0.25);color:#fff;font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;display:flex;align-items:center;gap:4px}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:#4ade80;flex-shrink:0;transition:background .3s}
+.sync-dot.syncing{background:#fbbf24;animation:pulse .8s infinite}
+.sync-dot.offline{background:#f87171}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.btn-logout{background:rgba(255,255,255,0.2);border:none;color:#fff;border-radius:8px;padding:5px 8px;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:4px;font-family:var(--font);font-weight:500}
+
+/* TABS */
+.tabs{display:flex;background:rgba(0,0,0,0.15);border-radius:10px;padding:3px;gap:2px}
+.tab{flex:1;text-align:center;padding:6px 4px;font-size:12px;font-weight:500;color:rgba(255,255,255,0.65);border-radius:8px;cursor:pointer;transition:all .2s;border:none;background:none}
+.tab.active{background:#FFF;color:var(--accent);font-weight:600}
+
+/* MAIN */
+.main{flex:1;padding:16px;display:flex;flex-direction:column;gap:12px}
+.section{display:none}
+.section.active{display:flex;flex-direction:column;gap:12px}
+
+/* CARDS */
+.card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--r);padding:14px}
+.card-title{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;display:flex;align-items:center;gap:6px;justify-content:space-between}
+.card-title span{display:flex;align-items:center;gap:6px}
+
+/* CAT FILTER */
+.cat-filter{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.cat-filter::-webkit-scrollbar{display:none}
+.cat-btn{white-space:nowrap;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;border:0.5px solid var(--border);background:var(--card);color:var(--muted);cursor:pointer;transition:all .15s}
+.cat-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* PRODUCT ITEMS — swipe to delete */
+.product-list{display:flex;flex-direction:column;gap:6px}
+.product-wrap{position:relative;overflow:hidden;border-radius:var(--r-sm)}
+.delete-bg{position:absolute;right:0;top:0;bottom:0;background:var(--red);display:flex;align-items:center;justify-content:flex-end;padding-right:16px;color:#fff;font-size:13px;font-weight:600;gap:6px;min-width:80px;border-radius:var(--r-sm)}
+.product-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface);border:0.5px solid var(--border);transition:transform .2s ease, opacity .2s;position:relative;border-radius:var(--r-sm);touch-action:pan-y}
+.product-item.saving{opacity:0.6}
+.product-emoji{font-size:20px;width:32px;text-align:center;flex-shrink:0}
+.product-info{flex:1;min-width:0}
+.product-name{font-size:14px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.product-meta{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;margin-top:2px;flex-wrap:wrap}
+.store-tag{background:var(--blue-light);color:var(--blue);padding:1px 6px;border-radius:10px;font-size:10px;font-weight:600;white-space:nowrap}
+.price-tag{background:var(--green-light);color:var(--green);padding:1px 6px;border-radius:10px;font-size:10px;font-weight:600}
+.product-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+.qty-num{font-size:15px;font-weight:600;color:var(--text);text-align:right}
+.qty-unit{font-size:10px;color:var(--muted)}
+.qty-low{color:var(--red)}
+.qty-badge{width:7px;height:7px;background:var(--red);border-radius:50%;display:inline-block;margin-right:3px}
+.qty-controls{display:flex;align-items:center;gap:4px}
+.qty-btn{width:22px;height:22px;border-radius:50%;border:0.5px solid var(--border);background:var(--card);color:var(--text);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+.del-btn{background:none;border:none;color:var(--muted);cursor:pointer;padding:2px 4px;font-size:15px;opacity:0.6}
+.del-btn:active{color:var(--red);opacity:1}
+
+.empty{text-align:center;padding:40px 16px;color:var(--muted)}
+.empty i{font-size:40px;opacity:0.3;display:block;margin-bottom:8px}
+.empty p{font-size:14px}
+
+/* SHOPPING LIST — agrupada por tienda */
+.store-section{margin-bottom:12px}
+.store-header{display:flex;align-items:center;gap:8px;padding:6px 0;margin-bottom:6px;border-bottom:1.5px solid var(--border)}
+.store-header-name{font-size:13px;font-weight:700;color:var(--text)}
+.store-header-count{font-size:11px;color:var(--muted);margin-left:auto}
+.shop-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface);border-radius:var(--r-sm);border:0.5px solid var(--border);margin-bottom:5px}
+.shop-check{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--border);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.shop-check.done{background:var(--green);border-color:var(--green)}
+.shop-check.done i{color:#fff;font-size:13px}
+.shop-info{flex:1;min-width:0}
+.shop-name{font-size:14px;font-weight:500;color:var(--text)}
+.shop-name.done{text-decoration:line-through;color:var(--muted)}
+.shop-meta{font-size:11px;color:var(--muted);display:flex;gap:5px;flex-wrap:wrap;margin-top:2px}
+.shop-del{padding:4px;color:var(--muted);cursor:pointer;background:none;border:none;font-size:16px}
+.btn-add-manual{width:100%;padding:10px;border:1px dashed var(--border);border-radius:var(--r-sm);background:none;color:var(--muted);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-family:var(--font)}
+.btn-add-manual:hover{background:var(--surface)}
+
+/* TICKET */
+.upload-zone{border:2px dashed var(--border);border-radius:var(--r);padding:32px 16px;text-align:center;cursor:pointer;transition:all .2s;background:var(--surface)}
+.upload-zone:hover,.upload-zone.dragover{border-color:var(--accent);background:var(--accent-light)}
+.upload-zone i{font-size:36px;color:var(--muted);display:block;margin-bottom:8px}
+.upload-zone p{font-size:14px;color:var(--muted);line-height:1.5}
+.upload-zone strong{color:var(--accent)}
+.file-btn{display:inline-block;margin-top:12px;padding:8px 16px;background:var(--accent);color:#fff;border-radius:var(--r-sm);font-size:13px;font-weight:600;cursor:pointer}
+#ticket-input{display:none}
+.ticket-img-preview{width:100%;border-radius:var(--r-sm);max-height:200px;object-fit:cover;margin-bottom:10px;display:block}
+.ocr-result{background:var(--surface);border-radius:var(--r-sm);border:0.5px solid var(--border);overflow:hidden}
+.ocr-item{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:0.5px solid var(--border);font-size:13px}
+.ocr-item:last-child{border-bottom:none}
+.ocr-item input[type=checkbox]{width:15px;height:15px;accent-color:var(--accent);flex-shrink:0}
+.ocr-item .oname{flex:1}
+.ocr-item .oprice{color:var(--muted);font-size:11px;white-space:nowrap}
+.btn-secondary{width:100%;padding:10px;background:var(--card);color:var(--text);border:0.5px solid var(--border);border-radius:var(--r-sm);font-size:14px;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px}
+.store-select{width:100%;padding:8px 10px;border:0.5px solid var(--border);border-radius:var(--r-sm);font-size:14px;font-family:var(--font);background:var(--card);color:var(--text)}
+
+/* CHAT */
+.chat-messages{display:flex;flex-direction:column;gap:10px;min-height:180px;max-height:340px;overflow-y:auto;padding:4px 0}
+.msg{max-width:88%;padding:10px 13px;border-radius:var(--r);font-size:13px;line-height:1.5}
+.msg.ai{background:var(--surface);border:0.5px solid var(--border);align-self:flex-start;color:var(--text)}
+.msg.user{background:var(--accent);color:#fff;align-self:flex-end}
+.msg.ai .msg-name{font-size:10px;color:var(--muted);margin-bottom:4px;font-weight:600;letter-spacing:0.3px}
+.chat-input-row{display:flex;gap:8px;margin-top:8px}
+.chat-input-row input{flex:1;padding:10px 12px;border:0.5px solid var(--border);border-radius:var(--r-sm);font-size:14px;font-family:var(--font);background:var(--card);color:var(--text)}
+.chat-input-row input:focus{outline:none;border-color:var(--accent)}
+.chat-send{width:40px;height:40px;border-radius:var(--r-sm);background:var(--accent);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.typing{display:flex;gap:4px;padding:4px 0;align-items:center}
+.dot{width:6px;height:6px;background:var(--muted);border-radius:50%;animation:bounce .8s infinite}
+.dot:nth-child(2){animation-delay:.15s}
+.dot:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+
+/* STATS */
+.stats-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--card);border:0.5px solid var(--border);border-radius:var(--r-sm);padding:10px;text-align:center}
+.stat-num{font-size:20px;font-weight:600;color:var(--text);font-family:var(--serif)}
+.stat-lbl{font-size:10px;color:var(--muted);margin-top:2px}
+
+/* MODALS */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;align-items:flex-end;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:var(--card);border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:430px;max-height:90vh;overflow-y:auto}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px}
+.modal h3{font-family:var(--serif);font-size:18px;margin-bottom:14px}
+.form-row{margin-bottom:12px}
+.form-row label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.4px}
+.form-row input,.form-row select{width:100%;padding:10px 12px;border:0.5px solid var(--border);border-radius:var(--r-sm);font-size:14px;font-family:var(--font);background:var(--card);color:var(--text)}
+.form-row input:focus,.form-row select:focus{outline:none;border-color:var(--accent)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.modal-btns{display:flex;gap:8px;margin-top:14px}
+.modal-btns .btn-primary{flex:1}
+.modal-btns .btn-cancel{flex:1;padding:12px;background:none;border:0.5px solid var(--border);border-radius:var(--r-sm);font-size:14px;cursor:pointer;font-family:var(--font)}
+
+/* UTILS */
+.btn-primary{width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:var(--r-sm);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s}
+.btn-primary:active{opacity:.85}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.loading{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);padding:8px 0}
+.spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.alert-banner{background:var(--red-light);border:0.5px solid #F09595;border-radius:var(--r-sm);padding:10px 12px;display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--red)}
+.alert-banner i{font-size:16px;flex-shrink:0;margin-top:1px}
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1A1208;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:500;z-index:999;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center}
+.toast.show{opacity:1}
+input,select,textarea,button{-webkit-appearance:none;appearance:none}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<!-- AUTH -->
+<div id="auth-screen" class="auth-screen">
+  <div class="auth-logo">🛒 Despensa</div>
+  <div class="auth-sub">Gestión del hogar compartida</div>
+  <div class="auth-card">
+    <h2 id="auth-title">Entrar</h2>
+    <div class="auth-info">Usad la misma cuenta en los dos móviles para compartir el inventario en tiempo real.</div>
+    <div class="auth-err" id="auth-err"></div>
+    <div class="form-row"><label>Email</label><input type="email" id="auth-email" placeholder="tu@email.com" autocomplete="email"></div>
+    <div class="form-row"><label>Contraseña</label><input type="password" id="auth-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doAuth()"></div>
+    <div class="form-row hidden" id="pass-confirm-row"><label>Confirmar contraseña</label><input type="password" id="auth-pass2" placeholder="••••••••"></div>
+    <button class="btn-primary" id="auth-btn" onclick="doAuth()"><i class="ti ti-login" style="font-size:16px"></i> Entrar</button>
+    <div class="auth-switch"><span id="auth-switch-text">¿Sin cuenta aún?</span><a onclick="toggleAuthMode()"> Crear cuenta</a></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="main-app" class="app hidden">
+  <div class="header">
+    <div class="header-top">
+      <div><h1>🛒 Despensa</h1><div class="header-subtitle" id="user-email-display"></div></div>
+      <div class="header-right">
+        <div class="sync-dot" id="sync-dot"></div>
+        <div class="badge-alert" id="low-badge" style="display:none"><i class="ti ti-alert-triangle" style="font-size:12px"></i><span id="low-count">0</span></div>
+        <button class="btn-logout" onclick="doLogout()"><i class="ti ti-logout" style="font-size:12px"></i> Salir</button>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('inventario')"><i class="ti ti-package" style="font-size:13px"></i> Despensa</button>
+      <button class="tab" onclick="showTab('lista')"><i class="ti ti-list" style="font-size:13px"></i> Lista</button>
+      <button class="tab" onclick="showTab('ticket')"><i class="ti ti-receipt" style="font-size:13px"></i> Ticket</button>
+      <button class="tab" onclick="showTab('chat')"><i class="ti ti-message" style="font-size:13px"></i> Chat</button>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- INVENTARIO -->
+    <div class="section active" id="sec-inventario">
+      <div class="stats-bar">
+        <div class="stat"><div class="stat-num" id="st-total">—</div><div class="stat-lbl">Productos</div></div>
+        <div class="stat"><div class="stat-num" id="st-low" style="color:var(--red)">—</div><div class="stat-lbl">Stock bajo</div></div>
+        <div class="stat"><div class="stat-num" id="st-cats">—</div><div class="stat-lbl">Categorías</div></div>
+      </div>
+      <div id="low-alert" style="display:none" class="alert-banner"><i class="ti ti-alert-triangle"></i><span id="low-alert-text"></span></div>
+      <div class="cat-filter" id="cat-filter"></div>
+      <div class="card">
+        <div class="card-title">
+          <span><i class="ti ti-package" style="font-size:14px"></i> <span id="inv-title">Todo el inventario</span></span>
+          <button onclick="openAddModal()" style="background:var(--accent);color:#fff;border:none;border-radius:var(--r-sm);padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px"><i class="ti ti-plus" style="font-size:12px"></i> Añadir</button>
+        </div>
+        <div class="product-list" id="product-list"><div class="loading"><div class="spinner"></div><span>Cargando inventario...</span></div></div>
+      </div>
+    </div>
+
+    <!-- LISTA -->
+    <div class="section" id="sec-lista">
+      <div class="card">
+        <div class="card-title">
+          <span><i class="ti ti-shopping-cart" style="font-size:14px"></i> Lista de la compra</span>
+          <button onclick="clearDone()" style="background:none;border:0.5px solid var(--border);border-radius:var(--r-sm);padding:4px 8px;font-size:11px;cursor:pointer;color:var(--muted)">Limpiar ✓</button>
+        </div>
+        <div id="shop-list"><div class="loading"><div class="spinner"></div><span>Cargando lista...</span></div></div>
+        <button class="btn-add-manual" onclick="openAddShopModal()"><i class="ti ti-plus" style="font-size:14px"></i> Añadir manualmente</button>
+      </div>
+    </div>
+
+    <!-- TICKET -->
+    <div class="section" id="sec-ticket">
+      <div class="card">
+        <div class="card-title"><span><i class="ti ti-camera" style="font-size:14px"></i> Subir ticket de compra</span></div>
+        <div class="upload-zone" id="upload-zone">
+          <i class="ti ti-receipt"></i>
+          <p>Arrastra aquí la foto del ticket<br>o pulsa el botón para seleccionarla</p>
+          <label class="file-btn"><i class="ti ti-photo" style="font-size:13px"></i> Elegir foto / cámara<input type="file" id="ticket-input" accept="image/*" onchange="handleTicket(event)"></label>
+        </div>
+        <div id="ticket-status" style="margin-top:10px"></div>
+      </div>
+      <div id="ocr-card" class="hidden">
+        <div class="card">
+          <div class="card-title"><span><i class="ti ti-list-check" style="font-size:14px"></i> Productos detectados</span></div>
+          <div class="form-row">
+            <label>Tienda</label>
+            <select id="ticket-store" style="margin-top:4px">
+              <option value="">Seleccionar tienda...</option>
+              <option>Mercadona</option><option>Ahorramas</option><option>Mercado</option>
+              <option>El Corte Inglés</option><option>Carrefour</option><option>Lidl</option>
+              <option>Alcampo</option><option>Dia</option><option>Otra</option>
+            </select>
+          </div>
+          <div id="ocr-items" class="ocr-result"></div>
+          <button class="btn-primary" onclick="importTicket()" style="margin-top:10px"><i class="ti ti-package-import" style="font-size:15px"></i> Añadir al inventario</button>
+          <button class="btn-secondary" onclick="resetTicket()"><i class="ti ti-trash" style="font-size:14px"></i> Descartar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHAT -->
+    <div class="section" id="sec-chat">
+      <div class="card">
+        <div class="card-title"><span><i class="ti ti-message-chatbot" style="font-size:14px"></i> Asistente de despensa</span></div>
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="chat-input-row">
+          <input type="text" id="chat-input" placeholder="Ej: He bebido 3 cervezas y usé 2 huevos..." onkeydown="if(event.key==='Enter')sendChat()">
+          <button class="chat-send" onclick="sendChat()"><i class="ti ti-send" style="font-size:16px"></i></button>
+        </div>
+      </div>
+      <div class="card" style="background:var(--surface)">
+        <div class="card-title" style="margin-bottom:6px"><span><i class="ti ti-bulb" style="font-size:14px"></i> Sugerencias</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <button onclick="quickChat('He bebido 3 cervezas')" style="background:var(--card);border:0.5px solid var(--border);border-radius:var(--r-sm);padding:8px 12px;font-size:12px;text-align:left;cursor:pointer;font-family:var(--font);color:var(--text)">🍺 "He bebido 3 cervezas"</button>
+          <button onclick="quickChat('Hemos usado leche, queda poca')" style="background:var(--card);border:0.5px solid var(--border);border-radius:var(--r-sm);padding:8px 12px;font-size:12px;text-align:left;cursor:pointer;font-family:var(--font);color:var(--text)">💧 "Hemos usado leche, queda poca"</button>
+          <button onclick="quickChat('¿Qué tengo que comprar en Ahorramas?')" style="background:var(--card);border:0.5px solid var(--border);border-radius:var(--r-sm);padding:8px 12px;font-size:12px;text-align:left;cursor:pointer;font-family:var(--font);color:var(--text)">🛒 "¿Qué tengo que comprar en Ahorramas?"</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL AÑADIR PRODUCTO -->
+<div class="modal-overlay" id="add-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3 id="add-modal-title">Añadir producto</h3>
+    <input type="hidden" id="m-id">
+    <div class="form-row"><label>Nombre</label><input type="text" id="m-name" placeholder="Ej: Cerveza Mahou 0,0 33cl"></div>
+    <div class="form-grid3">
+      <div class="form-row"><label>Cantidad</label><input type="number" id="m-qty" placeholder="12" min="0" step="1"></div>
+      <div class="form-row"><label>Unidad</label>
+        <select id="m-unit">
+          <option value="ud">ud</option><option value="lata">lata</option><option value="botella">botella</option>
+          <option value="kg">kg</option><option value="g">g</option><option value="L">L</option>
+          <option value="ml">ml</option><option value="bote">bote</option><option value="caja">caja</option><option value="bolsa">bolsa</option>
+        </select>
+      </div>
+      <div class="form-row"><label>Mínimo</label><input type="number" id="m-min" placeholder="6" min="0" step="1"></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-row"><label>Precio (€)</label><input type="number" id="m-price" placeholder="0.00" min="0" step="0.01"></div>
+      <div class="form-row"><label>Tienda</label>
+        <select id="m-store">
+          <option value="">Sin especificar</option>
+          <option>Mercadona</option><option>Ahorramas</option><option>Mercado</option>
+          <option>El Corte Inglés</option><option>Carrefour</option><option>Lidl</option>
+          <option>Alcampo</option><option>Dia</option><option>Otra</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row"><label>Categoría</label>
+      <select id="m-cat">
+        <option value="🧴 Limpieza">🧴 Limpieza</option><option value="🥩 Carne">🥩 Carne</option>
+        <option value="🍗 Pollo">🍗 Pollo</option><option value="🐟 Pescado">🐟 Pescado</option>
+        <option value="🥛 Lácteos">🥛 Lácteos</option><option value="🍞 Pan y cereales">🍞 Pan y cereales</option>
+        <option value="🥦 Verdura">🥦 Verdura</option><option value="🍎 Fruta">🍎 Fruta</option>
+        <option value="🫙 Conservas">🫙 Conservas</option><option value="🧃 Bebida">🧃 Bebida</option>
+        <option value="🧂 Condimentos">🧂 Condimentos</option><option value="🍝 Pasta y arroz">🍝 Pasta y arroz</option>
+        <option value="🥚 Huevos">🥚 Huevos</option><option value="🍦 Congelados">🍦 Congelados</option>
+        <option value="📦 Otros">📦 Otros</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('add-modal')">Cancelar</button>
+      <button class="btn-primary" onclick="saveProduct()"><i class="ti ti-check"></i> Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL LISTA -->
+<div class="modal-overlay" id="shop-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3>Añadir a la lista</h3>
+    <div class="form-row"><label>Producto</label><input type="text" id="sm-name" placeholder="Ej: Cerveza Mahou"></div>
+    <div class="form-grid">
+      <div class="form-row"><label>Cantidad</label><input type="text" id="sm-qty" placeholder="Ej: 12 latas"></div>
+      <div class="form-row"><label>Tienda</label>
+        <select id="sm-store">
+          <option value="">Sin preferencia</option>
+          <option>Mercadona</option><option>Ahorramas</option><option>Mercado</option>
+          <option>El Corte Inglés</option><option>Carrefour</option><option>Lidl</option>
+          <option>Alcampo</option><option>Dia</option><option>Otra</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('shop-modal')">Cancelar</button>
+      <button class="btn-primary" onclick="saveShopItem()"><i class="ti ti-check"></i> Añadir</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIRMAR BORRADO -->
+<div class="modal-overlay" id="del-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3>Eliminar producto</h3>
+    <p style="font-size:14px;color:var(--muted);margin-bottom:16px">¿Seguro que quieres eliminar <strong id="del-name"></strong> del inventario? Esta acción no se puede deshacer.</p>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('del-modal')">Cancelar</button>
+      <button class="btn-primary" style="background:var(--red)" onclick="confirmDelete()"><i class="ti ti-trash"></i> Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+const SUPABASE_URL = 'https://uqjqqkeldyajwhoorvwx.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_Ql-T6aYOShIJktxxNBRc6g_1h1mWnLq';
+const CLAUDE_MODEL = 'claude-sonnet-4-20250514';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentUser = null, inventory = [], shopList = [], chatHistory = [];
+let currentCat = 'all', authMode = 'login', realtimeSubs = [];
+let pendingDeleteId = null;
+
+// ── AUTH ─────────────────────────────────────────────────
+async function initAuth() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) { currentUser = session.user; showApp(); }
+  sb.auth.onAuthStateChange((ev, session) => {
+    if (session) { currentUser = session.user; showApp(); }
+    else { currentUser = null; showAuthScreen(); }
+  });
+}
+function toggleAuthMode() {
+  authMode = authMode === 'login' ? 'signup' : 'login';
+  document.getElementById('auth-title').textContent = authMode === 'login' ? 'Entrar' : 'Crear cuenta';
+  document.getElementById('auth-btn').innerHTML = authMode === 'login'
+    ? '<i class="ti ti-login" style="font-size:16px"></i> Entrar'
+    : '<i class="ti ti-user-plus" style="font-size:16px"></i> Crear cuenta';
+  document.getElementById('auth-switch-text').textContent = authMode === 'login' ? '¿Sin cuenta aún?' : '¿Ya tienes cuenta?';
+  document.querySelector('.auth-switch a').textContent = authMode === 'login' ? ' Crear cuenta' : ' Entrar';
+  document.getElementById('pass-confirm-row').classList.toggle('hidden', authMode === 'login');
+  document.getElementById('auth-err').style.display = 'none';
+}
+async function doAuth() {
+  const email = document.getElementById('auth-email').value.trim();
+  const pass = document.getElementById('auth-pass').value;
+  const pass2 = document.getElementById('auth-pass2').value;
+  const btn = document.getElementById('auth-btn');
+  document.getElementById('auth-err').style.display = 'none';
+  if (!email || !pass) { showAuthErr('Rellena email y contraseña.'); return; }
+  if (authMode === 'signup' && pass !== pass2) { showAuthErr('Las contraseñas no coinciden.'); return; }
+  if (authMode === 'signup' && pass.length < 6) { showAuthErr('Mínimo 6 caracteres.'); return; }
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner" style="border-top-color:#fff"></div> Cargando...';
+  let error;
+  if (authMode === 'login') ({ error } = await sb.auth.signInWithPassword({ email, password: pass }));
+  else ({ error } = await sb.auth.signUp({ email, password: pass }));
+  btn.disabled = false;
+  btn.innerHTML = authMode === 'login' ? '<i class="ti ti-login" style="font-size:16px"></i> Entrar' : '<i class="ti ti-user-plus" style="font-size:16px"></i> Crear cuenta';
+  if (error) showAuthErr(translateError(error.message));
+  else if (authMode === 'signup') showAuthErr('✅ Cuenta creada. Revisa tu email para confirmarla.', true);
+}
+function translateError(m) {
+  if (m.includes('Invalid login')) return 'Email o contraseña incorrectos.';
+  if (m.includes('Email not confirmed')) return 'Confirma tu email antes de entrar.';
+  if (m.includes('already registered')) return 'Este email ya existe. Entra directamente.';
+  return m;
+}
+function showAuthErr(msg, ok = false) {
+  const el = document.getElementById('auth-err');
+  el.textContent = msg; el.style.display = 'block';
+  el.style.background = ok ? 'var(--green-light)' : 'var(--red-light)';
+  el.style.color = ok ? 'var(--green)' : 'var(--red)';
+  el.style.borderColor = ok ? '#97C459' : '#F09595';
+}
+async function doLogout() {
+  realtimeSubs.forEach(s => sb.removeChannel(s)); realtimeSubs = [];
+  await sb.auth.signOut();
+}
+function showApp() {
+  document.getElementById('auth-screen').classList.add('hidden');
+  document.getElementById('main-app').classList.remove('hidden');
+  document.getElementById('user-email-display').textContent = currentUser?.email || '';
+  loadAll(); setupRealtime();
+}
+function showAuthScreen() {
+  document.getElementById('auth-screen').classList.remove('hidden');
+  document.getElementById('main-app').classList.add('hidden');
+}
+
+// ── LOAD ─────────────────────────────────────────────────
+async function loadAll() {
+  setSyncState('syncing');
+  await Promise.all([loadInventory(), loadShopList(), loadChat()]);
+  setSyncState('ok');
+}
+async function loadInventory() {
+  const { data, error } = await sb.from('inventory').select('*').eq('user_id', currentUser.id).order('name');
+  if (!error && data) { inventory = data; renderInventory(); renderStats(); }
+}
+async function loadShopList() {
+  const { data, error } = await sb.from('shopping_list').select('*').eq('user_id', currentUser.id).order('created_at');
+  if (!error && data) { shopList = data; renderShopList(); }
+}
+async function loadChat() {
+  const { data, error } = await sb.from('chat_history').select('*').eq('user_id', currentUser.id).order('created_at').limit(60);
+  if (!error && data) {
+    chatHistory = data.map(r => ({ role: r.role, text: r.content }));
+    if (!chatHistory.length) chatHistory = [{ role: 'ai', text: '¡Hola! Soy vuestra asistente de despensa 👋 Dime qué habéis consumido y actualizaré el inventario. También puedo decirte qué falta en cada tienda.' }];
+    renderChat();
+  }
+}
+
+// ── REALTIME ─────────────────────────────────────────────
+function setupRealtime() {
+  const i = sb.channel('inv').on('postgres_changes', { event: '*', schema: 'public', table: 'inventory', filter: `user_id=eq.${currentUser.id}` }, p => {
+    setSyncState('syncing');
+    if (p.eventType === 'INSERT') { if (!inventory.find(x => x.id === p.new.id)) inventory.push(p.new); }
+    else if (p.eventType === 'UPDATE') { const idx = inventory.findIndex(x => x.id === p.new.id); if (idx >= 0) inventory[idx] = p.new; else inventory.push(p.new); }
+    else if (p.eventType === 'DELETE') { inventory = inventory.filter(x => x.id !== p.old.id); }
+    inventory.sort((a, b) => a.name.localeCompare(b.name));
+    renderInventory(); renderStats(); setSyncState('ok'); showToast('📦 Inventario actualizado');
+  }).subscribe();
+  const s = sb.channel('shop').on('postgres_changes', { event: '*', schema: 'public', table: 'shopping_list', filter: `user_id=eq.${currentUser.id}` }, p => {
+    setSyncState('syncing');
+    if (p.eventType === 'INSERT') { if (!shopList.find(x => x.id === p.new.id)) shopList.push(p.new); }
+    else if (p.eventType === 'UPDATE') { const idx = shopList.findIndex(x => x.id === p.new.id); if (idx >= 0) shopList[idx] = p.new; else shopList.push(p.new); }
+    else if (p.eventType === 'DELETE') { shopList = shopList.filter(x => x.id !== p.old.id); }
+    renderShopList(); setSyncState('ok'); showToast('🛒 Lista actualizada');
+  }).subscribe();
+  realtimeSubs = [i, s];
+}
+function setSyncState(s) {
+  const d = document.getElementById('sync-dot');
+  d.className = 'sync-dot' + (s === 'syncing' ? ' syncing' : s === 'offline' ? ' offline' : '');
+}
+
+// ── INVENTORY RENDER ──────────────────────────────────────
+function renderStats() {
+  const low = inventory.filter(p => p.qty <= p.min_qty).length;
+  document.getElementById('st-total').textContent = inventory.length;
+  document.getElementById('st-low').textContent = low;
+  document.getElementById('st-cats').textContent = [...new Set(inventory.map(p => p.category))].length;
+  const badge = document.getElementById('low-badge');
+  low > 0 ? (badge.style.display = 'flex', document.getElementById('low-count').textContent = low) : badge.style.display = 'none';
+  const alert = document.getElementById('low-alert');
+  if (low > 0) {
+    alert.style.display = 'flex';
+    document.getElementById('low-alert-text').innerHTML = '<strong>Stock bajo:</strong> ' + inventory.filter(p => p.qty <= p.min_qty).map(p => p.name).join(', ');
+  } else alert.style.display = 'none';
+}
+function renderCatFilter() {
+  const cats = [...new Set(inventory.map(p => p.category))].sort();
+  const f = document.getElementById('cat-filter');
+  f.innerHTML = `<button class="cat-btn ${currentCat === 'all' ? 'active' : ''}" onclick="filterCat('all')">Todos</button>`;
+  cats.forEach(c => { f.innerHTML += `<button class="cat-btn ${currentCat === c ? 'active' : ''}" onclick="filterCat(${JSON.stringify(c)})">${c}</button>`; });
+}
+function filterCat(cat) {
+  currentCat = cat; renderCatFilter(); renderInventory();
+  document.getElementById('inv-title').textContent = cat === 'all' ? 'Todo el inventario' : cat;
+}
+function renderInventory() {
+  renderCatFilter();
+  const list = document.getElementById('product-list');
+  const filtered = currentCat === 'all' ? inventory : inventory.filter(p => p.category === currentCat);
+  if (!filtered.length) {
+    list.innerHTML = `<div class="empty"><i class="ti ti-package-off"></i><p>${inventory.length === 0 ? 'Añade tu primer producto' : 'Sin productos en esta categoría'}</p></div>`;
+    return;
+  }
+  list.innerHTML = filtered.map(p => {
+    const isLow = p.qty <= p.min_qty;
+    const emoji = p.category.split(' ')[0];
+    const catName = p.category.split(' ').slice(1).join(' ');
+    const priceHtml = p.price ? `<span class="price-tag">${parseFloat(p.price).toFixed(2)}€</span>` : '';
+    return `<div class="product-wrap">
+      <div class="delete-bg"><i class="ti ti-trash"></i> Borrar</div>
+      <div class="product-item" id="pi-${p.id}" data-id="${p.id}" ontouchstart="swipeStart(event,'${p.id}')" ontouchmove="swipeMove(event,'${p.id}')" ontouchend="swipeEnd(event,'${p.id}')">
+        <div class="product-emoji">${emoji}</div>
+        <div class="product-info">
+          <div class="product-name">${p.name}</div>
+          <div class="product-meta">
+            <span style="font-size:10px">${catName}</span>
+            ${p.store ? `<span class="store-tag">${p.store}</span>` : ''}
+            ${priceHtml}
+          </div>
+        </div>
+        <div class="product-right">
+          <div class="qty-num ${isLow ? 'qty-low' : ''}">${isLow ? '<span class="qty-badge"></span>' : ''}${fmt(p.qty)} <span class="qty-unit">${p.unit}</span></div>
+          <div class="qty-controls">
+            <button class="qty-btn" onclick="changeQty('${p.id}',-1)">−</button>
+            <button class="qty-btn" onclick="changeQty('${p.id}',1)">+</button>
+            <button class="del-btn" onclick="askDelete('${p.id}')"><i class="ti ti-trash"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function fmt(n) { const f = parseFloat(n); return Number.isInteger(f) ? f : f.toFixed(2); }
+
+// Swipe to delete (mobile)
+const swipeState = {};
+function swipeStart(e, id) { swipeState[id] = { startX: e.touches[0].clientX, moved: 0 }; }
+function swipeMove(e, id) {
+  if (!swipeState[id]) return;
+  const dx = e.touches[0].clientX - swipeState[id].startX;
+  swipeState[id].moved = dx;
+  if (dx < -10) {
+    const el = document.getElementById('pi-' + id);
+    if (el) el.style.transform = `translateX(${Math.max(dx, -90)}px)`;
+  }
+}
+function swipeEnd(e, id) {
+  if (!swipeState[id]) return;
+  const moved = swipeState[id].moved;
+  const el = document.getElementById('pi-' + id);
+  if (moved < -60) { askDelete(id); }
+  if (el) el.style.transform = '';
+  delete swipeState[id];
+}
+function askDelete(id) {
+  const p = inventory.find(x => x.id === id);
+  if (!p) return;
+  pendingDeleteId = id;
+  document.getElementById('del-name').textContent = p.name;
+  document.getElementById('del-modal').classList.add('show');
+}
+async function confirmDelete() {
+  if (!pendingDeleteId) return;
+  inventory = inventory.filter(x => x.id !== pendingDeleteId);
+  renderInventory(); renderStats();
+  closeModal('del-modal');
+  await sb.from('inventory').delete().eq('id', pendingDeleteId);
+  showToast('🗑️ Producto eliminado');
+  pendingDeleteId = null;
+}
+
+// Quantity change
+async function changeQty(id, delta) {
+  const p = inventory.find(x => x.id === id);
+  if (!p) return;
+  const step = ['g', 'ml'].includes(p.unit) ? 100 : ['kg', 'L'].includes(p.unit) ? 0.25 : 1;
+  p.qty = Math.max(0, parseFloat((p.qty + delta * step).toFixed(3)));
+  const el = document.getElementById('pi-' + id);
+  if (el) el.classList.add('saving');
+  setSyncState('syncing');
+  await sb.from('inventory').update({ qty: p.qty, updated_at: new Date().toISOString() }).eq('id', id);
+  await checkAndAddToList(p);
+  renderInventory(); renderStats(); setSyncState('ok');
+}
+async function checkAndAddToList(p) {
+  if (p.qty <= p.min_qty) {
+    const already = shopList.find(s => s.name === p.name && !s.done);
+    if (!already) {
+      const item = { user_id: currentUser.id, name: p.name, store: p.store || '', qty: `${p.min_qty} ${p.unit}`, done: false, auto: true };
+      const { data } = await sb.from('shopping_list').insert(item).select().single();
+      if (data) shopList.push(data);
+      renderShopList(); showToast(`⚠️ ${p.name} añadido a la lista`);
+    }
+  }
+}
+
+// ── ADD/EDIT PRODUCT ──────────────────────────────────────
+function openAddModal(p = null) {
+  document.getElementById('m-id').value = p ? p.id : '';
+  document.getElementById('m-name').value = p ? p.name : '';
+  document.getElementById('m-qty').value = p ? p.qty : '';
+  document.getElementById('m-unit').value = p ? p.unit : 'ud';
+  document.getElementById('m-min').value = p ? p.min_qty : '1';
+  document.getElementById('m-price').value = p && p.price ? p.price : '';
+  document.getElementById('m-cat').value = p ? p.category : '🧃 Bebida';
+  document.getElementById('m-store').value = p ? (p.store || '') : '';
+  document.getElementById('add-modal-title').textContent = p ? 'Editar producto' : 'Añadir producto';
+  document.getElementById('add-modal').classList.add('show');
+  setTimeout(() => document.getElementById('m-name').focus(), 300);
+}
+async function saveProduct() {
+  const name = document.getElementById('m-name').value.trim();
+  const qty = parseFloat(document.getElementById('m-qty').value) || 0;
+  const editId = document.getElementById('m-id').value;
+  if (!name) { showToast('Escribe el nombre del producto'); return; }
+  setSyncState('syncing');
+  const fields = {
+    name, qty, unit: document.getElementById('m-unit').value,
+    min_qty: parseFloat(document.getElementById('m-min').value) || 1,
+    price: parseFloat(document.getElementById('m-price').value) || null,
+    category: document.getElementById('m-cat').value,
+    store: document.getElementById('m-store').value,
+    updated_at: new Date().toISOString()
+  };
+  if (editId) {
+    await sb.from('inventory').update(fields).eq('id', editId);
+    const idx = inventory.findIndex(x => x.id === editId);
+    if (idx >= 0) inventory[idx] = { ...inventory[idx], ...fields };
+  } else {
+    const existing = inventory.find(x => x.name.toLowerCase() === name.toLowerCase());
+    if (existing) {
+      const newQty = existing.qty + qty;
+      await sb.from('inventory').update({ qty: newQty, updated_at: new Date().toISOString() }).eq('id', existing.id);
+      existing.qty = newQty;
+    } else {
+      const { data } = await sb.from('inventory').insert({ user_id: currentUser.id, ...fields }).select().single();
+      if (data) inventory.push(data);
+    }
+  }
+  inventory.sort((a, b) => a.name.localeCompare(b.name));
+  setSyncState('ok'); renderInventory(); renderStats();
+  closeModal('add-modal'); showToast('✅ Producto guardado');
+}
+
+// ── SHOPPING LIST ─────────────────────────────────────────
+function renderShopList() {
+  const el = document.getElementById('shop-list');
+  const pending = shopList.filter(s => !s.done);
+  const done = shopList.filter(s => s.done);
+
+  if (!shopList.length) {
+    el.innerHTML = `<div class="empty"><i class="ti ti-check"></i><p>¡La lista está vacía!</p></div>`;
+    return;
+  }
+
+  let html = '';
+
+  if (pending.length) {
+    // Agrupar pendientes por tienda
+    const byStore = {};
+    pending.forEach(s => {
+      const key = s.store || '🏪 Sin tienda específica';
+      if (!byStore[key]) byStore[key] = [];
+      byStore[key].push(s);
+    });
+
+    // Ordenar: primero las que tienen tienda, luego las sin tienda
+    const storeKeys = Object.keys(byStore).sort((a, b) => {
+      if (a === '🏪 Sin tienda específica') return 1;
+      if (b === '🏪 Sin tienda específica') return -1;
+      return a.localeCompare(b);
+    });
+
+    storeKeys.forEach(store => {
+      const items = byStore[store];
+      html += `<div class="store-section">
+        <div class="store-header">
+          <span style="font-size:16px">${getStoreEmoji(store)}</span>
+          <span class="store-header-name">${store}</span>
+          <span class="store-header-count">${items.length} producto${items.length !== 1 ? 's' : ''}</span>
+        </div>`;
+      items.forEach(s => { html += shopItemHtml(s); });
+      html += `</div>`;
+    });
+  }
+
+  if (done.length) {
+    html += `<div style="margin-top:4px;margin-bottom:6px;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Ya comprado</div>`;
+    done.forEach(s => { html += shopItemHtml(s); });
+  }
+
+  el.innerHTML = html;
+}
+
+function shopItemHtml(s) {
+  return `<div class="shop-item">
+    <div class="shop-check ${s.done ? 'done' : ''}" onclick="toggleShop('${s.id}')">
+      ${s.done ? '<i class="ti ti-check"></i>' : ''}
+    </div>
+    <div class="shop-info">
+      <div class="shop-name ${s.done ? 'done' : ''}">${s.name}${s.auto ? ' <span style="font-size:10px;color:var(--muted)">(auto)</span>' : ''}</div>
+      <div class="shop-meta">${s.qty ? `<span>${s.qty}</span>` : ''}${s.store && !s.done ? `<span class="store-tag">${s.store}</span>` : ''}</div>
+    </div>
+    <button class="shop-del" onclick="delShopItem('${s.id}')"><i class="ti ti-x"></i></button>
+  </div>`;
+}
+
+function getStoreEmoji(store) {
+  const map = { 'Mercadona': '🟢', 'Ahorramas': '🔵', 'Mercado': '🛖', 'El Corte Inglés': '🟤', 'Carrefour': '🔴', 'Lidl': '🟡', 'Alcampo': '🟠', 'Dia': '⚪' };
+  return map[store] || '🏪';
+}
+
+async function toggleShop(id) {
+  const s = shopList.find(x => x.id === id); if (!s) return;
+  s.done = !s.done; renderShopList();
+  await sb.from('shopping_list').update({ done: s.done }).eq('id', id);
+}
+async function delShopItem(id) {
+  shopList = shopList.filter(x => x.id !== id); renderShopList();
+  await sb.from('shopping_list').delete().eq('id', id);
+}
+async function clearDone() {
+  const ids = shopList.filter(s => s.done).map(s => s.id);
+  if (!ids.length) return;
+  shopList = shopList.filter(s => !s.done); renderShopList();
+  await sb.from('shopping_list').delete().in('id', ids);
+}
+function openAddShopModal() {
+  ['sm-name', 'sm-qty'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('sm-store').value = '';
+  document.getElementById('shop-modal').classList.add('show');
+  setTimeout(() => document.getElementById('sm-name').focus(), 300);
+}
+async function saveShopItem() {
+  const name = document.getElementById('sm-name').value.trim();
+  if (!name) return;
+  const item = { user_id: currentUser.id, name, store: document.getElementById('sm-store').value, qty: document.getElementById('sm-qty').value, done: false, auto: false };
+  const { data } = await sb.from('shopping_list').insert(item).select().single();
+  if (data) shopList.push(data);
+  renderShopList(); closeModal('shop-modal'); showToast('✅ Añadido a la lista');
+}
+
+// ── TICKET OCR ────────────────────────────────────────────
+const CAT_MAP = {
+  'Limpieza':'🧴 Limpieza','Carne':'🥩 Carne','Pollo':'🍗 Pollo','Pescado':'🐟 Pescado',
+  'Lácteos':'🥛 Lácteos','Pan y cereales':'🍞 Pan y cereales','Verdura':'🥦 Verdura',
+  'Fruta':'🍎 Fruta','Conservas':'🫙 Conservas','Bebida':'🧃 Bebida',
+  'Condimentos':'🧂 Condimentos','Pasta y arroz':'🍝 Pasta y arroz',
+  'Huevos':'🥚 Huevos','Congelados':'🍦 Congelados','Otros':'📦 Otros'
+};
+
+// Drag and drop support
+const uploadZone = document.getElementById('upload-zone');
+if (uploadZone) {
+  uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+  uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+  uploadZone.addEventListener('drop', e => {
+    e.preventDefault(); uploadZone.classList.remove('dragover');
+    const file = e.dataTransfer?.files?.[0];
+    if (file && file.type.startsWith('image/')) processTicketFile(file);
+    else showToast('Por favor arrastra una imagen');
+  });
+}
+
+function handleTicket(event) {
+  const file = event.target.files?.[0];
+  if (file) processTicketFile(file);
+  event.target.value = '';
+}
+
+// Convierte cualquier imagen (incluido HEIC del iPhone) a JPEG via canvas
+function fileToJpegBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('No se pudo leer el archivo'));
+    reader.onload = (e) => {
+      const dataUrl = e.target.result;
+      const img = new Image();
+      img.onerror = () => {
+        // Si el navegador no puede renderizar (HEIC en algunos casos),
+        // devolvemos el base64 original como fallback
+        const b64 = dataUrl.split(',')[1];
+        resolve({ b64, previewUrl: dataUrl, mediaType: 'image/jpeg' });
+      };
+      img.onload = () => {
+        // Reducir tamaño si es muy grande (mejora velocidad OCR)
+        const MAX = 1600;
+        let { width: w, height: h } = img;
+        if (w > MAX || h > MAX) {
+          if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+          else { w = Math.round(w * MAX / h); h = MAX; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        const jpegUrl = canvas.toDataURL('image/jpeg', 0.88);
+        resolve({ b64: jpegUrl.split(',')[1], previewUrl: jpegUrl, mediaType: 'image/jpeg' });
+      };
+      img.src = dataUrl;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function processTicketFile(file) {
+  const status = document.getElementById('ticket-status');
+  document.getElementById('ocr-card').classList.add('hidden');
+
+  // Detectar HEIC: por tipo MIME o por extensión
+  const isHeic = file.type === 'image/heic' || file.type === 'image/heif'
+    || file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif');
+
+  status.innerHTML = `<div class="loading"><div class="spinner"></div><span>${isHeic ? 'Convirtiendo imagen HEIC…' : 'Leyendo imagen…'}</span></div>`;
+
+  let b64, previewUrl, mediaType;
+  try {
+    ({ b64, previewUrl, mediaType } = await fileToJpegBase64(file));
+  } catch (err) {
+    status.innerHTML = '<div class="alert-banner"><i class="ti ti-alert-triangle"></i><span>No se pudo leer el archivo. Prueba a exportar la foto como JPEG desde Fotos.</span></div>';
+    return;
+  }
+
+  if (!b64) { status.innerHTML = '<div class="alert-banner"><i class="ti ti-alert-triangle"></i><span>Error al procesar la imagen.</span></div>'; return; }
+
+  status.innerHTML = `<img src="${previewUrl}" class="ticket-img-preview"><div class="loading"><div class="spinner"></div><span>Analizando ticket con IA…</span></div>`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: CLAUDE_MODEL, max_tokens: 2000,
+        system: `Eres un sistema OCR de tickets de supermercado español. Analiza el ticket y devuelve ÚNICAMENTE un JSON válido sin texto adicional, sin backticks, sin comentarios.
+
+REGLA CRÍTICA PARA PACKS/MULTIPACK:
+- Si ves "P-12", "P12", "x12", "pack 12", "multipack 12" o similar → DESCOMPÓN en unidades individuales
+- Ejemplo: "Cerveza Mahou 0,0 33cl P-12" → name:"Cerveza Mahou 0,0 33cl", qty:12, unit:"lata"
+- Ejemplo: "Refresco Aquarius limón 33cl P6" → name:"Aquarius Limón 33cl", qty:6, unit:"lata"
+- Ejemplo: "Agua Fontvella 50cl P6" → name:"Agua Fontvella 50cl", qty:6, unit:"botella"
+- Nunca uses unit:"pack" — siempre descompón
+- Para latas y botellas individuales: unit:"lata" o unit:"botella"
+
+Formato de respuesta:
+{"products":[{"name":"Nombre limpio del producto","qty":12,"unit":"lata","cat":"Bebida","price":"8.99"}]}
+
+Categorías posibles: Limpieza, Carne, Pollo, Pescado, Lácteos, Pan y cereales, Verdura, Fruta, Conservas, Bebida, Condimentos, Pasta y arroz, Huevos, Congelados, Otros
+
+Si no hay ticket claro o no puedes leerlo, devuelve: {"products":[]}`,
+        messages: [{ role: 'user', content: [
+          { type: 'image', source: { type: 'base64', media_type: mediaType, data: b64 } },
+          { type: 'text', text: 'Extrae todos los productos de este ticket de compra.' }
+        ]}]
+      })
+    });
+
+    if (!res.ok) throw new Error(`API error ${res.status}`);
+    const data = await res.json();
+    const raw = (data.content || []).map(c => c.text || '').join('');
+    let parsed;
+    try {
+      const clean = raw.replace(/```json|```/g, '').trim();
+      parsed = JSON.parse(clean);
+    } catch (e) {
+      parsed = { products: [] };
+    }
+    const prods = parsed.products || [];
+    status.innerHTML = `<img src="${previewUrl}" class="ticket-img-preview">`;
+
+    if (prods.length > 0) {
+      document.getElementById('ocr-card').classList.remove('hidden');
+      document.getElementById('ocr-items').dataset.raw = JSON.stringify(prods);
+      document.getElementById('ocr-items').innerHTML = prods.map((p, i) =>
+        `<div class="ocr-item">
+          <input type="checkbox" id="oi-${i}" checked>
+          <label for="oi-${i}" class="oname">${p.name} <span style="color:var(--muted);font-size:11px">× ${p.qty} ${p.unit}</span></label>
+          <span class="oprice">${p.price ? p.price + '€' : ''}</span>
+        </div>`
+      ).join('');
+    } else {
+      status.innerHTML += `<div class="alert-banner" style="margin-top:8px"><i class="ti ti-alert-triangle"></i><span>No se detectaron productos. Asegúrate de que la imagen sea clara y muestre el listado de productos del ticket.</span></div>`;
+    }
+  } catch (err) {
+    status.innerHTML = `<div class="alert-banner"><i class="ti ti-alert-triangle"></i><span>Error al analizar el ticket: ${err.message}. Inténtalo de nuevo.</span></div>`;
+  }
+}
+
+async function importTicket() {
+  const store = document.getElementById('ticket-store').value;
+  const rawData = document.getElementById('ocr-items').dataset.raw;
+  if (!rawData) return;
+  const prods = JSON.parse(rawData);
+  setSyncState('syncing');
+  let count = 0;
+  for (let i = 0; i < prods.length; i++) {
+    const cb = document.getElementById(`oi-${i}`);
+    if (!cb || !cb.checked) continue;
+    const p = prods[i];
+    const existing = inventory.find(x => x.name.toLowerCase() === p.name.toLowerCase());
+    if (existing) {
+      const newQty = existing.qty + (parseFloat(p.qty) || 1);
+      await sb.from('inventory').update({ qty: newQty, store: store || existing.store, price: p.price ? parseFloat(p.price) : existing.price, updated_at: new Date().toISOString() }).eq('id', existing.id);
+      existing.qty = newQty;
+    } else {
+      const catKey = Object.keys(CAT_MAP).find(k => p.cat && p.cat.toLowerCase().includes(k.toLowerCase())) || 'Otros';
+      const item = { user_id: currentUser.id, name: p.name, qty: parseFloat(p.qty) || 1, unit: p.unit || 'ud', min_qty: 1, category: CAT_MAP[catKey], store: store || '', price: p.price ? parseFloat(p.price) : null };
+      const { data } = await sb.from('inventory').insert(item).select().single();
+      if (data) inventory.push(data);
+    }
+    count++;
+  }
+  setSyncState('ok');
+  inventory.sort((a, b) => a.name.localeCompare(b.name));
+  renderInventory(); renderStats();
+  resetTicket(); showTab('inventario');
+  showToast(`✅ ${count} productos importados${store ? ' de ' + store : ''}`);
+}
+
+function resetTicket() {
+  document.getElementById('ticket-status').innerHTML = '';
+  document.getElementById('ocr-card').classList.add('hidden');
+  document.getElementById('ticket-input').value = '';
+}
+
+// ── CHAT ─────────────────────────────────────────────────
+function renderChat() {
+  const el = document.getElementById('chat-messages');
+  el.innerHTML = chatHistory.map(m => `
+    <div class="msg ${m.role === 'ai' ? 'ai' : 'user'}">
+      ${m.role === 'ai' ? '<div class="msg-name">DESPENSA IA</div>' : ''}
+      ${m.text}
+    </div>`).join('');
+  el.scrollTop = el.scrollHeight;
+}
+function quickChat(text) { showTab('chat'); document.getElementById('chat-input').value = text; setTimeout(() => sendChat(), 100); }
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  chatHistory.push({ role: 'user', text });
+  await sb.from('chat_history').insert({ user_id: currentUser.id, role: 'user', content: text });
+  renderChat();
+
+  const el = document.getElementById('chat-messages');
+  const t = document.createElement('div');
+  t.className = 'msg ai';
+  t.innerHTML = '<div class="msg-name">DESPENSA IA</div><div class="typing"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>';
+  el.appendChild(t); el.scrollTop = el.scrollHeight;
+
+  const invSummary = inventory.map(p => `- ${p.name}: ${fmt(p.qty)} ${p.unit} (mín ${p.min_qty}, tienda: ${p.store || 'N/A'}, precio: ${p.price ? p.price + '€' : 'N/A'})`).join('\n');
+  const shopPending = shopList.filter(s => !s.done).map(s => `${s.name}${s.store ? ' [' + s.store + ']' : ''}`).join(', ') || 'vacía';
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: CLAUDE_MODEL, max_tokens: 1000,
+        system: `Eres el asistente de la app Despensa de una pareja española. Gestionas su inventario doméstico.
+
+INVENTARIO ACTUAL:
+${invSummary}
+
+LISTA DE LA COMPRA (pendiente): ${shopPending}
+
+Tu trabajo:
+1. Interpretar consumo en lenguaje natural ("he bebido 3 cervezas", "queda poca leche", "hemos abierto el aceite")
+2. Responder brevemente en español informal y amigable (máx 3-4 líneas)
+3. Cuando pregunten por una tienda específica (ej: "¿qué compro en Ahorramas?"), mostrar los productos pendientes de esa tienda
+4. Para cervezas/latas: restar en unidades (1 cerveza = 1 lata)
+5. Al final incluye SIEMPRE: |||ACTIONS:{"updates":[{"name":"Cerveza Mahou 0,0 33cl","newQty":9}],"addToShop":[{"name":"Cerveza Mahou 0,0 33cl","store":"Ahorramas","qty":"12 latas"}]}|||
+Si no hay acciones: |||ACTIONS:{}|||`,
+        messages: [{ role: 'user', content: text }]
+      })
+    });
+    const data = await res.json();
+    const full = (data.content || []).map(c => c.text || '').join('');
+    const actionMatch = full.match(/\|\|\|ACTIONS:([\s\S]*?)\|\|\|/);
+    const visibleText = full.replace(/\|\|\|ACTIONS:[\s\S]*?\|\|\|/, '').trim();
+
+    if (actionMatch) {
+      try {
+        const actions = JSON.parse(actionMatch[1]);
+        if (actions.updates) for (const u of actions.updates) {
+          const p = inventory.find(x => x.name.toLowerCase() === u.name.toLowerCase());
+          if (p) { p.qty = parseFloat(u.newQty) || p.qty; await sb.from('inventory').update({ qty: p.qty, updated_at: new Date().toISOString() }).eq('id', p.id); await checkAndAddToList(p); }
+        }
+        if (actions.addToShop) for (const s of actions.addToShop) {
+          const already = shopList.find(x => x.name.toLowerCase() === s.name.toLowerCase() && !x.done);
+          if (!already) { const item = { user_id: currentUser.id, name: s.name, store: s.store || '', qty: s.qty || '', done: false, auto: true }; const { data: ins } = await sb.from('shopping_list').insert(item).select().single(); if (ins) shopList.push(ins); }
+        }
+        renderInventory(); renderStats(); renderShopList();
+      } catch (e) {}
+    }
+
+    el.removeChild(t);
+    chatHistory.push({ role: 'ai', text: visibleText });
+    await sb.from('chat_history').insert({ user_id: currentUser.id, role: 'assistant', content: visibleText });
+    renderChat();
+  } catch (e) {
+    el.removeChild(t);
+    chatHistory.push({ role: 'ai', text: 'Error de conexión. Inténtalo de nuevo.' });
+    renderChat();
+  }
+}
+
+// ── UI ────────────────────────────────────────────────────
+function showTab(t) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-' + t).classList.add('active');
+  ['inventario','lista','ticket','chat'].forEach((tab, i) => { if (tab === t) document.querySelectorAll('.tab')[i].classList.add('active'); });
+}
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+document.querySelectorAll('.modal-overlay').forEach(o => { o.addEventListener('click', e => { if (e.target === o) o.classList.remove('show'); }); });
+
+initAuth();
+</script>
+</body>
+</html>
