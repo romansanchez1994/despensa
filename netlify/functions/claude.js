@@ -59,7 +59,7 @@ exports.handler = async (event) => {
       }
     };
 
-    const model = 'gemini-2.0-flash';
+    const model = 'gemini-1.5-flash';
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
     const response = await fetch(url, {
@@ -100,4 +100,3 @@ exports.handler = async (event) => {
     };
   }
 };
- 
