@@ -5,10 +5,7 @@ exports.handler = async (event) => {
 
   const apiKey = process.env.GEMINI_KEY;
   if (!apiKey) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: 'GEMINI_KEY not configured' })
-    };
+    return { statusCode: 500, body: JSON.stringify({ error: 'GEMINI_KEY not configured' }) };
   }
 
   let body;
@@ -19,28 +16,20 @@ exports.handler = async (event) => {
   }
 
   try {
-    // Convertir formato Anthropic → formato Gemini
     const systemPrompt = body.system || '';
     const messages = body.messages || [];
 
-    // Construir parts de Gemini
-    const parts = [];
-
-    // Añadir system prompt como primer texto
-    if (systemPrompt) {
-      parts.push({ text: systemPrompt + '\n\n' });
-    }
-
-    // Procesar mensajes
+    // Construir parts del mensaje de usuario
+    const userParts = [];
     for (const msg of messages) {
       if (typeof msg.content === 'string') {
-        parts.push({ text: msg.content });
+        userParts.push({ text: msg.content });
       } else if (Array.isArray(msg.content)) {
         for (const block of msg.content) {
           if (block.type === 'text') {
-            parts.push({ text: block.text });
+            userParts.push({ text: block.text });
           } else if (block.type === 'image' && block.source?.data) {
-            parts.push({
+            userParts.push({
               inlineData: {
                 mimeType: block.source.media_type || 'image/jpeg',
                 data: block.source.data
@@ -51,16 +40,25 @@ exports.handler = async (event) => {
       }
     }
 
+    // Formato correcto de Gemini API v1beta
     const geminiBody = {
-      contents: [{ parts }],
+      system_instruction: systemPrompt ? { parts: [{ text: systemPrompt }] } : undefined,
+      contents: [{ role: 'user', parts: userParts }],
       generationConfig: {
         maxOutputTokens: body.max_tokens || 1000,
         temperature: 0.1
       }
     };
 
-    const model = 'gemini-1.5-flash-latest';
-    const url = `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`;
+    // Eliminar system_instruction si está vacío
+    if (!systemPrompt) delete geminiBody.system_instruction;
+
+    // v1beta con gemini-1.5-flash es el combo más estable y gratuito
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+    console.log('Calling Gemini URL:', url.replace(apiKey, 'HIDDEN'));
+    console.log('Parts count:', userParts.length);
+    console.log('Has image:', userParts.some(p => p.inlineData));
 
     const response = await fetch(url, {
       method: 'POST',
@@ -69,27 +67,25 @@ exports.handler = async (event) => {
     });
 
     const data = await response.json();
+    console.log('Gemini status:', response.status);
 
     if (!response.ok) {
-      console.error('Gemini error:', response.status, JSON.stringify(data));
+      console.error('Gemini error:', JSON.stringify(data));
       return {
         statusCode: response.status,
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-        body: JSON.stringify({ error: data.error?.message || 'Gemini error' })
+        body: JSON.stringify({ error: data.error?.message || 'Gemini error', details: data })
       };
     }
 
-    // Convertir respuesta Gemini → formato Anthropic (para no cambiar el frontend)
+    // Convertir respuesta Gemini → formato compatible con el frontend
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    const anthropicFormat = {
-      content: [{ type: 'text', text }],
-      usage: { input_tokens: 0, output_tokens: 0 }
-    };
+    console.log('Response text length:', text.length);
 
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-      body: JSON.stringify(anthropicFormat)
+      body: JSON.stringify({ content: [{ type: 'text', text }] })
     };
 
   } catch (err) {
