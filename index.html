@@ -835,7 +835,7 @@ function fileToJpegBase64(file) {
       };
       img.onload = () => {
         // Reducir tamaño si es muy grande (mejora velocidad OCR)
-        const MAX = 1600;
+        const MAX = 1000;
         let { width: w, height: h } = img;
         if (w > MAX || h > MAX) {
           if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
@@ -845,7 +845,7 @@ function fileToJpegBase64(file) {
         canvas.width = w; canvas.height = h;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, w, h);
-        const jpegUrl = canvas.toDataURL('image/jpeg', 0.88);
+        const jpegUrl = canvas.toDataURL('image/jpeg', 0.72);
         resolve({ b64: jpegUrl.split(',')[1], previewUrl: jpegUrl, mediaType: 'image/jpeg' });
       };
       img.src = dataUrl;
